@@ -4,7 +4,7 @@
 #include <vector>
 #include <sstream>
 #include <array>
-
+#include <algorithm>
 
 
 int main(int argc, char **argv) {
@@ -21,7 +21,8 @@ int main(int argc, char **argv) {
     std::vector<int> classes;
     std::array<double, 132> arr;
     int classe, k, n, tam_treinamento, sum, max_class_neighbor, predicted_class;
-    int **confusao, *min_dist, *min_dist_pos, *class_vector;
+    std::vector<int> min_dist, min_dist_pos, class_vector;
+    std::vector<std::vector<int>> confusao;
     bool done;
 
     //lendo treinamento
@@ -40,11 +41,10 @@ int main(int argc, char **argv) {
 
             while (getline(st, aux, ' ')) {
 
-                std::stringstream sstream(aux);
-                std::getline(sstream, atr, ':');
-                std::getline(sstream, value, ':');
+                std::stringstream string_stream(aux);
+                std::getline(string_stream, atr, ':');
+                std::getline(string_stream, value, ':');
                 arr[stoi(atr)-1] = stod(value);
-
 
             }
             train.insert(train.end(), arr);
@@ -52,18 +52,19 @@ int main(int argc, char **argv) {
             tam_treinamento++;
         }
     }
+    myfile.close();
 
-    n = *std::max_element(classes.begin(), classes.end()) + 1;
-    k = stoi(argv[3]);
-    confusao = malloc(n*sizeof(int *));
+    n = *max_element(classes.begin(), classes.end()) + 1;
+    k = stoi(std::string(argv[3]));
+    confusao.resize(n);
     for (int i=0; i<n; i++) {
 
-        confusao[i] = malloc(n*sizeof(int));
-        confusao[i].fill(0);
+        confusao.at(i).resize(n);
+        std::fill(confusao.at(i).begin(), confusao.at(i).end(), 0);
     }
-    min_dist = malloc(k*sizeof(int));
-    min_dist_pos = malloc(k*sizeof(int));
-    class_vector = malloc(k*sizeof(int));
+    min_dist.resize(k);
+    min_dist_pos.resize(k);
+    class_vector.resize(k);
     //lendo teste e calculando classe
     myfile.open(argv[2]);
 
@@ -78,56 +79,57 @@ int main(int argc, char **argv) {
 
             while (getline(st, aux, ' ')) {
 
-                std::stringstream sstream(aux);
-                std::getline(sstream, atr, ':');
-                std::getline(sstream, value, ':');
+                std::stringstream string_stream(aux);
+                std::getline(string_stream, atr, ':');
+                std::getline(string_stream, value, ':');
                 arr[stoi(atr)-1] = stod(value);
 
 
             }
             //arr contem uma entrada da base de teste
             sum = 0;
-            min_dist_pos.fill(0);
+            fill(min_dist_pos.begin(), min_dist_pos.end(), 0);
             max_class_neighbor = 0;
             for (int i=0; i<tam_treinamento; i++) {
                 for (int j=0; j<132; j++)
                     sum += (train.at(i)[j] - arr[j])*(train.at(i)[j] - arr[j]);
                 if (i<k) {
-                    min_dist = sum;
-                    min_dist_pos = i;
+                    min_dist.at(i) = sum;
+                    min_dist_pos.at(i) = i;
                 }
                 else {
                     int j=0;
-                    done = false
+                    done = false;
                     while ((j<k) && !(done)) {
                     
-                        if (sum < min_dist[j]) {
-                            min_dist[j] = sum;
-                            min_dis_pos[j] = i;
+                        if (sum < min_dist.at(j)) {
+                            min_dist.at(j) = sum;
+                            min_dist_pos.at(j) = i;
                             done = true;
                         }
                         j++;
                     }
                 }
             }
-            class_vector.fill(0);
+            fill(class_vector.begin(), class_vector.end(), 0);
             for (int i=0; i<k; i++)
-               class_vector[classes.at(min_dis_pos[i])]++;
+               class_vector.at(classes.at(min_dist_pos.at(i)))++;
             for (int i=0; i<k; i++) {
-                if (class_vector[i] > max_class_neighbor) {
-                    max_class_neighbor = class_vector[i];
+                if (class_vector.at(i) > max_class_neighbor) {
+                    max_class_neighbor = class_vector.at(i);
                     predicted_class = i;
                 }
             }
             //confusao[real][predita]
-            confusao[classe][predicted_class]++;
+            confusao.at(classe).at(predicted_class)++;
+            std::cout << "classe: " << classe << " classe prevista: " << predicted_class << "\n";
         }
     }
-
+    myfile.close();
     for (int i=0; i<n; i++) {
         std::cout << "[";
         for (int j=0; j<n; j++)
-            std::cout << confusao[i][j] << ", ";
+            std::cout << confusao.at(i).at(j) << ", ";
         std::cout << "]\n";
     }
 
