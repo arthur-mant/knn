@@ -92,7 +92,7 @@ int main(int argc, char **argv) {
             }
             tam_test++;
             //arr contem uma entrada da base de teste
-            //std::cout << tam_test << "\n";
+
             fill(min_dist_pos.begin(), min_dist_pos.end(), 0);
             max_class_neighbor = 0;
             for (int i=0; i<k; i++) {
@@ -114,7 +114,6 @@ int main(int argc, char **argv) {
                 while ((j<k) && !(done)) {
                 
                     if (sum < min_dist.at(j)) {
-//                        std::cout << "on if " << j << "\n";
                         min_dist.at(j) = sum;
                         min_dist_pos.at(j) = i;
                         done = true;
@@ -123,36 +122,31 @@ int main(int argc, char **argv) {
                 }
             }
             fill(class_vector.begin(), class_vector.end(), 0);
-/*
-            for (auto i: min_dist_pos)
-                std::cout << i << ", ";
-            std::cout << "\n";
-*/
+
             for (int i=0; i<k; i++)
                class_vector.at(classes.at(min_dist_pos.at(i)))++;
-//            std::cout << "a\n";
+
             for (int i=0; i<n; i++) {
                 if (class_vector.at(i) > max_class_neighbor) {
                     max_class_neighbor = class_vector.at(i);
                     predicted_class = i;
                 }
             }
-//            std::cout << "b\n";
+
             //confusao[real][predita]
             confusao.at(classe).at(predicted_class)++;
-//            std::cout << "classe: " << classe << " classe prevista: " << predicted_class << "\n";
+
         }
     }
     myfile.close();
     for (int i=0; i<n; i++) {
-        std::cout << "[";
-        for (int j=0; j<n; j++)
-            std::cout << confusao.at(i).at(j) << ", ";
+        std::cout << "[" << confusao.at(i).at(0);
+        for (int j=1; j<n; j++)
+            std::cout << ", " << confusao.at(i).at(j);
         std::cout << "]\n";
     }
     accuracy = 0;
     for (int i=0; i<n; i++)
         accuracy += confusao.at(i).at(i);
-    //std::cout << "size: " << (tam_test) << "\n";
     std::cout << "accuracy: " << (accuracy/tam_test) << "\n";
 }
