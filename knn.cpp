@@ -20,7 +20,8 @@ int main(int argc, char **argv) {
     std::vector<std::array<double, 132>> train, test;
     std::vector<int> classes;
     std::array<double, 132> arr;
-    int classe, k, n, tam_treinamento, max_class_neighbor, predicted_class;
+    int classe, k, n, tam_treinamento, max_class_neighbor, predicted_class,
+    tam_test;
     std::vector<int> min_dist_pos, class_vector;
     std::vector<std::vector<int>> confusao;
     bool done;
@@ -29,6 +30,7 @@ int main(int argc, char **argv) {
 
     //lendo treinamento
     tam_treinamento = 0;
+    tam_test = 0;
 
     myfile.open(argv[1]);
 
@@ -88,45 +90,36 @@ int main(int argc, char **argv) {
 
 
             }
+            tam_test++;
             //arr contem uma entrada da base de teste
+            //std::cout << tam_test << "\n";
             fill(min_dist_pos.begin(), min_dist_pos.end(), 0);
             max_class_neighbor = 0;
-            for (int i=0; i<tam_treinamento; i++) {
+            for (int i=0; i<k; i++) {
                 sum = 0;
                 for (int j=0; j<132; j++) {
                     sum += (train.at(i)[j] - arr[j])*(train.at(i)[j] - arr[j]);
                 }
-//                std::cout << i << "\n";
-/*
-                std::cout << sum << " vs ";
-                for (auto j: min_dist)
-                    std::cout << j << ", ";
-                std::cout << "\n";
-*/
-                if (i<k) {
-//                    std::cout << "i<k sum = " << sum << "\n";
-                    
-                    min_dist.at(i) = sum;
-                    min_dist_pos.at(i) = i;
+                min_dist.at(i) = sum;
+                min_dist_pos.at(i) = i;
+            }
+            for (int i=k; i<tam_treinamento; i++) {
+                sum = 0;
+                for (int j=0; j<132; j++) {
+                    sum += (train.at(i)[j] - arr[j])*(train.at(i)[j] - arr[j]);
                 }
-                else {
-/*
-                    for(auto var: min_dist)
-                        std::cout << var << ", ";
-                    std::cout << "\n";
-*/
-                    int j=0;
-                    done = false;
-                    while ((j<k) && !(done)) {
-                    
-                        if (sum < min_dist.at(j)) {
-//                            std::cout << "on if " << j << "\n";
-                            min_dist.at(j) = sum;
-                            min_dist_pos.at(j) = i;
-                            done = true;
-                        }
-                        j++;
+
+                int j=0;
+                done = false;
+                while ((j<k) && !(done)) {
+                
+                    if (sum < min_dist.at(j)) {
+//                        std::cout << "on if " << j << "\n";
+                        min_dist.at(j) = sum;
+                        min_dist_pos.at(j) = i;
+                        done = true;
                     }
+                    j++;
                 }
             }
             fill(class_vector.begin(), class_vector.end(), 0);
@@ -138,7 +131,7 @@ int main(int argc, char **argv) {
             for (int i=0; i<k; i++)
                class_vector.at(classes.at(min_dist_pos.at(i)))++;
 //            std::cout << "a\n";
-            for (int i=0; i<k; i++) {
+            for (int i=0; i<n; i++) {
                 if (class_vector.at(i) > max_class_neighbor) {
                     max_class_neighbor = class_vector.at(i);
                     predicted_class = i;
@@ -160,5 +153,6 @@ int main(int argc, char **argv) {
     accuracy = 0;
     for (int i=0; i<n; i++)
         accuracy += confusao.at(i).at(i);
-    std::cout << "accuracy: " << 100*accuracy/test.size() << "\n";
+    //std::cout << "size: " << (tam_test) << "\n";
+    std::cout << "accuracy: " << (accuracy/tam_test) << "\n";
 }
